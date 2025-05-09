@@ -77,15 +77,15 @@ if __name__ == "__main__":
         elif any(damage_type in status["name"] for damage_type in damage_type_list):
             damage_up += status["value"]
 
-    print(f"攻撃力: {base_attack} -> {base_attack * attack:.2f}")
-    print(f"クリティカル: {base_critical} -> {critical:.2f}")
-    print(f"クリティカルダメージ: {base_damage} -> {damage:.2f}")
-    print(f"ダメージアップ: {base_damage_up} -> {damage_up:.2f}")
+    print(f"攻撃力: {base_attack:.0f} -> {base_attack * attack:.0f}")
+    print(f"クリティカル: {base_critical:.3f} -> {critical:.3f}")
+    print(f"クリティカルダメージ: {base_damage:.3f} -> {damage:.3f}")
+    print(f"ダメージアップ: {base_damage_up:.3f} -> {damage_up:.3f}")
 
     print(f"期待値:" 
-          f"{1.0 * (1 + base_critical * base_damage) * (1 + base_damage_up):.2f}"
+          f"{1.0 * (1 + base_critical * base_damage) * (1 + base_damage_up):.3f}"
           " -> "
-          f"{attack * (1 + critical * damage) * (1 + damage_up):.2f}"
+          f"{attack * (1 + critical * damage) * (1 + damage_up):.3f}"
           " : "
           f"{(attack * (1 + critical * damage) * (1 + damage_up)) / (1.0 * (1 + base_critical * base_damage) * (1 + base_damage_up)):.2f}"
           "倍"

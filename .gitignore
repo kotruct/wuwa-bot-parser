@@ -2,5 +2,5 @@ data/*.jpeg
 debug/*.jpeg
 .venv
 *.jpeg
-__pycache__/
+__pycache__
 *.pyc

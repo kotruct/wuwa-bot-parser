@@ -36,7 +36,7 @@ pip install -r requirements.txt
 python parser.py https://wutheringwaves-discord.kurogames-global.com/back/cd/{ID}.jpeg
 # ダウンロード済みの場合は: python parser.py {ID}.jpeg
 ```
-![実行結果例](./example_result.png)
+![実行結果例](./example_parse.png)
 
 
 以下でJSON形式でも取得できる
@@ -77,6 +77,8 @@ json_data = parser.generate_json(path)
 ```
 python score.py score.py https://wutheringwaves-discord.kurogames-global.com/back/cd/{ID}.jpeg
 ```
+
+![実行結果例](./example_score.png)
 
 参照: https://wikiwiki.jp/w-w/%E3%83%80%E3%83%A1%E3%83%BC%E3%82%B8%E8%A8%88%E7%AE%97%E5%BC%8F#u8393035
 

@@ -3,6 +3,7 @@ import sys
 import json
 
 import csv
+from tabulate  import tabulate
 
 def csv_to_dict(file_path):
     result = {}
@@ -77,16 +78,18 @@ if __name__ == "__main__":
         elif any(damage_type in status["name"] for damage_type in damage_type_list):
             damage_up += status["value"]
 
-    print(f"攻撃力: {base_attack:.0f} -> {base_attack * attack:.0f}")
-    print(f"クリティカル: {base_critical:.3f} -> {critical:.3f}")
-    print(f"クリティカルダメージ: {base_damage:.3f} -> {damage:.3f}")
-    print(f"ダメージアップ: {base_damage_up:.3f} -> {damage_up:.3f}")
 
-    print(f"期待値:" 
-          f"{1.0 * (1 + base_critical * base_damage) * (1 + base_damage_up):.3f}"
-          " -> "
-          f"{attack * (1 + critical * damage) * (1 + damage_up):.3f}"
-          " : "
-          f"{(attack * (1 + critical * damage) * (1 + damage_up)) / (1.0 * (1 + base_critical * base_damage) * (1 + base_damage_up)):.2f}"
-          "倍"
-          )
+    headers = ["ステータス", "基準値", "最終値", "倍率"]
+    table = []
+    table.append([f'攻撃力', f"{base_attack:.1f}", f"{base_attack * attack:.1f}", f"{attack:.2f}倍"])
+    table.append([f'クリティカル', f"{base_critical:.3f}", f"{critical:.3f}", f""])
+    table.append([f'クリティカルダメージ', f"{base_damage:.3f}", f"{damage:.3f}", f""])
+    table.append([f'クリティカル効果', f"{1 - base_critical + base_critical * base_damage:.3f}", f"{1 - critical + critical * damage:.3f}", f"{(1 - critical + critical * damage) / (1 - base_critical + base_critical * base_damage):.2f}倍"])
+    table.append([f'ダメージアップ', f"{base_damage_up:.3f}", f"{damage_up:.3f}", f"{(1+damage_up) / (1+base_damage_up):.2f}倍"])
+    table.append([f'期待値', 
+                  f"{1.0 * (1 - base_critical + base_critical * base_damage) * (1 + base_damage_up):.3f}", 
+                  f"{attack * (1 - critical + critical * damage) * (1 + damage_up):.3f}", 
+                  f"{(attack * (1 - critical + critical * damage) * (1 + damage_up)) / (1.0 * (1 - base_critical + base_critical * base_damage) * (1 + base_damage_up)):.2f}倍"
+                  ])
+
+    print(tabulate(table, headers=headers, tablefmt="grid", stralign="center", maxcolwidths=[20, 10, 10, 10]))

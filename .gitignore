@@ -3,3 +3,4 @@ debug/*.jpeg
 .venv
 *.jpeg
 __pycache__/
+*.pyc

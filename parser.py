@@ -231,21 +231,21 @@ def generate_json(path):
 
     result = {
         "name": name,
-        "slots": {
-            f"slot{i}": {
-                "COST": costs[f"cost{i}"],
-                "MAIN": {
-                    "name": status_names[f"main-name{i}"],
-                    "value": status_values[f"main-value{i}"]
-                },
-                "SUB": {
-                    f"sub{sub}": {
-                        "name": status_names[f"sub-name{i}-{sub}"],
-                        "value": status_values[f"sub-value{i}-{sub}"]
-                    } for sub in range(1, 6)
-                }
-            } for i in range(1, 6)
-        }
+        "slots": [
+                {
+                    "COST": costs[f"cost{i}"],
+                    "MAIN": {
+                        "name": status_names[f"main-name{i}"],
+                        "value": status_values[f"main-value{i}"]
+                    },
+                    "SUB": {
+                        f"sub{sub}": {
+                            "name": status_names[f"sub-name{i}-{sub}"],
+                            "value": status_values[f"sub-value{i}-{sub}"]
+                        } for sub in range(1, 6)
+                    }
+                } for i in range(1, 6)
+            ]
     }
     # return json.dumps(result, ensure_ascii=False, indent=4)
     return result

@@ -215,10 +215,14 @@ def extract_name(img):
     # print(f"{field}.tesseract_text : {closest[0]}")
     return closest[0]
 
-def generate_json(url):
-    response = requests.get(url)
-    img = Image.open(BytesIO(response.content))
-    img = np.array(img) 
+def generate_json(path):
+    if "https://" in path:
+        response = requests.get(path)
+        img = Image.open(BytesIO(response.content))
+        img = np.array(img)
+    else:
+        img = cv2.imread(path)
+
 
     name = extract_name(img)
     costs = extract_cost(img)
@@ -243,7 +247,8 @@ def generate_json(url):
             } for i in range(1, 6)
         }
     }
-    return json.dumps(result, ensure_ascii=False, indent=4)
+    # return json.dumps(result, ensure_ascii=False, indent=4)
+    return result
 
 
     

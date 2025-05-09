@@ -60,7 +60,8 @@ python score.py score.py https://wutheringwaves-discord.kurogames-global.com/bac
 
 評価する際には、`data/{キャラクター名}.csv`にエコー以外の攻撃力、ダメージアップ、クリティカル補正に関わる値を記入し、`data/{キャラクター名}.txt`に計算対象のダメージアップのリストを記入しておく。
 
-```txt:data/{キャラクター名}.csv
+`data/{キャラクター名}.csv`
+```
 基礎攻撃力, 1269
 クリティカル, 13%
 クリティカルダメージ, 198.6%
@@ -70,6 +71,8 @@ python score.py score.py https://wutheringwaves-discord.kurogames-global.com/bac
 - クリティカル: エコーをすべて外した時のクリティカル率 + スキル等による補正
 - クリティカルダメージ: エコーをすべて外した時のクリティカルダメージ + スキル等による補正
 - ダメージアップ: エコーをすべて外した時のダメージアップ + スキル等による補正
+
+`data/{キャラクター名}.txt`
 ```txt:data/{キャラクター名}.txt
 共鳴スキルダメージアップ
 凝縮ダメージアップ

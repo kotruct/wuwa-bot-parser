@@ -2,6 +2,6 @@ pillow
 pytesseract
 opencv-python
 numpy
-#easyocr
+easyocr
 tabulate[widechars]
 requests

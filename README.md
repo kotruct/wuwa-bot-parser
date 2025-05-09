@@ -5,7 +5,12 @@ tesseractがインストール済み
 
 ```
 sudo apt update
-sudo apt tesseract python3 python3-is-python
+sudo apt tesseract-ocr python3 python3-is-python
+```
+
+WSL
+```
+sudo apt install tesseract-ocr python3 python3.10-venv python-is-python3
 ```
 
 # 開発・テスト環境
@@ -28,6 +33,6 @@ pip install -r requirements.txt
 
 ## 実行
 ```
-python sample.py https://wutheringwaves-discord.kurogames-global.com/back/cd/{ID}.jpeg
-# ダウンロード済みの場合は: python sample.py {ID}.jpeg
+python parser.py https://wutheringwaves-discord.kurogames-global.com/back/cd/{ID}.jpeg
+# ダウンロード済みの場合は: python parser.py {ID}.jpeg
 ```

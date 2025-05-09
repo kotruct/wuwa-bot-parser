@@ -1,4 +1,4 @@
 data/*.jpeg
 debug/*.jpeg
 .venv
-tmp.jpeg
+*.jpeg

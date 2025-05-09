@@ -5,7 +5,11 @@ import re
 import sys
 import difflib
 import os
+import json
+import uuid
 
+import requests
+from io import BytesIO
 from tabulate  import tabulate
 
 # 画像読み込み
@@ -48,12 +52,14 @@ def region_of_interest(img, field, x1, y1, x2, y2):
 
     return thresh
 
-def ocr_pytesseract(img, custom_config):
+def ocr_pytesseract(img, custom_config, lang=None):
     import pytesseract
     if os.name == 'nt':
         pytesseract.pytesseract.tesseract_cmd = r"C:\Program Files\Tesseract-OCR\tesseract.exe"
-    text = pytesseract.image_to_string(img, config=custom_config).strip()
-    if "ダメージアップ" in custom_config:
+    if lang is None:
+        text = pytesseract.image_to_string(img, config=custom_config).strip()
+    else:
+    # if "ダメージアップ" in custom_config or "カルロッタ" in custom_config:
         if "HP" == pytesseract.image_to_string(img, config="--oem 1 --psm 7").strip():
             text = "HP"
         else:
@@ -93,8 +99,10 @@ def extract_cost(img):
         # print(f"{field}.tesseract_text : {tesseract_text}")
         ret[field] = tesseract_text
 
-        # easyocr_text = ocr_easyocr(numpy_img)
-        # print(f"{field}.easyocr_text : {easyocr_text}")
+        if tesseract_text == "":
+            easyocr_text = ocr_easyocr(numpy_img)
+            # print(f"{field}.easyocr_text : {easyocr_text}")
+            ret[field] = easyocr_text
     
     return ret
 
@@ -120,15 +128,33 @@ def extract_status_name(img):
         
         # なぜかいったん書き出してから再読み込みすると認識精度が上がる 
         # pngだとダメなのでjpegで保存が効いている？
-        cv2.imwrite(f"tmp.jpeg", numpy_img)
-        numpy_img = cv2.imread(f"tmp.jpeg")
+        tmp_filename = f"tmp_{uuid.uuid4().hex}.jpeg"
+        cv2.imwrite(tmp_filename, numpy_img)
+        numpy_img = cv2.imread(tmp_filename)
+        os.remove(tmp_filename)
 
-        pil_img = Image.fromarray(numpy_img)
-        custom_config = r'-c tessedit_char_whitelist=クリティカルダメージアップ重撃通常攻撃防御共鳴効率解放スキル凝縮焦熱電導気動回折消滅 --oem 1 --psm 7'
-        tesseract_text = ocr_pytesseract(pil_img, custom_config)
+        pil_img = Image.fromarray(numpy_img)        
+        with open("data/status_names.txt", "r", encoding="utf-8") as file:
+            candidates = [line.strip() for line in file if line.strip()]
+        whitelist = "クリティカルダメージアップ重撃通常攻撃防御共鳴効率解放スキル凝縮焦熱電導気動回折消滅"
+        # whitelist = ''.join(sorted(set(whitelist)))
+        # whitelist = ''.join(set(whitelist))
+
+        # candidatesを結合して重複を削除しても動かない　
+        # 上の例でもsetしてjoinすると動かなくなる　sortは関係なさそう
+
+        # whitelist = ''.join(sorted(set(''.join(candidates))))
+        # remove_str = "HP力"
+        # whitelist = ''.join([c for c in whitelist if c not in remove_str])
+        # print(whitelist)
+        
+        custom_config = fr'-c tessedit_char_whitelist={whitelist} --oem 1 --psm 7'
+        
+        # custom_config = r'-c tessedit_char_whitelist=クリティカルダメージアップ重撃通常攻撃防御共鳴効率解放スキル凝縮焦熱電導気動回折消滅 --oem 1 --psm 7'
+        tesseract_text = ocr_pytesseract(pil_img, custom_config, lang='jpn')
 
         # print(f"{field}.tesseract_text : {tesseract_text}")
-        candidates = ['凝縮ダメージアップ', '電導ダメージアップ', '焦熱ダメージアップ', '気動ダメージアップ', '回折ダメージアップ', '消滅ダメージアップ', '通常攻撃ダメージアップ', '重撃ダメージアップ', '共鳴スキルダメージアップ', '共鳴解放ダメージアップ', '共鳴効率', '攻撃力', '防御力', 'クリティカル', 'クリティカルダメージ', 'HP']
+
         closest = difflib.get_close_matches(tesseract_text, candidates, n=1, cutoff=0.55) # cutoffを上げるとマッチしない
         # print(f"{field}.tesseract_text : {closest[0]}")
         ret[field] = closest[0] 
@@ -171,33 +197,80 @@ def extract_status_value(img):
 
     return ret
 
+def extract_name(img):
+    # キャリブレーション実施
+    # region = (70, 22, 377, 76)
+
+    numpy_img = region_of_interest(img, "charactor", 70, 22, 377, 76)
+
+    # candidates = ["カルロッタ", "ツバキ", "ザンニー", "カカロ"]
+    with open("data/charactor_names.txt", "r", encoding="utf-8") as file:
+            candidates = [line.strip() for line in file if line.strip()]
+    custom_config = f'-c tessedit_char_whitelist={''.join(candidates)} --oem 1 --psm 7'
+    pil_img = Image.fromarray(numpy_img)
+    tesseract_text = ocr_pytesseract(pil_img, custom_config, lang='jpn')
+    # print(f"{field}.tesseract_text : {tesseract_text}")
+    closest = difflib.get_close_matches(tesseract_text, candidates, n=1, cutoff=0.55) # cutoffを上げるとマッチしない
+    # print(f"{field}.tesseract_text : {closest[0]}")
+    return closest[0]
+
+def generate_json(url):
+    response = requests.get(url)
+    img = Image.open(BytesIO(response.content))
+    img = np.array(img) 
+
+    name = extract_name(img)
+    costs = extract_cost(img)
+    status_names = extract_status_name(img)
+    status_values = extract_status_value(img)
+
+    result = {
+        "name": name,
+        "slots": {
+            f"slot{i}": {
+                "COST": costs[f"cost{i}"],
+                "MAIN": {
+                    "name": status_names[f"main-name{i}"],
+                    "value": status_values[f"main-value{i}"]
+                },
+                "SUB": {
+                    f"sub{sub}": {
+                        "name": status_names[f"sub-name{i}-{sub}"],
+                        "value": status_values[f"sub-value{i}-{sub}"]
+                    } for sub in range(1, 6)
+                }
+            } for i in range(1, 6)
+        }
+    }
+    return json.dumps(result, ensure_ascii=False, indent=4)
+
 
     
 if __name__ == "__main__":
     # 画像の読み込み
     if "https://" in sys.argv[1]:
-        import requests
-        from io import BytesIO
         response = requests.get(sys.argv[1])
         img = Image.open(BytesIO(response.content))
         img = np.array(img)
     else:
         img = cv2.imread(sys.argv[1])
 
+    name = extract_name(img)
     costs = extract_cost(img)
     status_names = extract_status_name(img)
     status_values = extract_status_value(img)
 
-    headers = ["label", "slot1", "slot2", "slot3", "slot4", "slot5"]
+
+    headers = ["label"] + [f"slot{i}" for i in range(1, 6)]
     data = [
-        ["COST", costs["cost1"], costs["cost2"], costs["cost3"], costs["cost4"], costs["cost5"]],
-        ["MAIN", f'{status_names["main-name1"]} : {status_values["main-value1"]}', f'{status_names["main-name2"]} : {status_values["main-value2"]}', f'{status_names["main-name3"]} : {status_values["main-value3"]}', f'{status_names["main-name4"]} : {status_values["main-value4"]}', f'{status_names["main-name5"]} : {status_values["main-value5"]}'],
-        ["SUB1", f'{status_names["sub-name1-1"]} : {status_values["sub-value1-1"]}', f'{status_names["sub-name2-1"]} : {status_values["sub-value2-1"]}', f'{status_names["sub-name3-1"]} : {status_values["sub-value3-1"]}', f'{status_names["sub-name4-1"]} : {status_values["sub-value4-1"]}', f'{status_names["sub-name5-1"]} : {status_values["sub-value5-1"]}'],
-        ["SUB2", f'{status_names["sub-name1-2"]} : {status_values["sub-value1-2"]}', f'{status_names["sub-name2-2"]} : {status_values["sub-value2-2"]}', f'{status_names["sub-name3-2"]} : {status_values["sub-value3-2"]}', f'{status_names["sub-name4-2"]} : {status_values["sub-value4-2"]}', f'{status_names["sub-name5-2"]} : {status_values["sub-value5-2"]}'],
-        ["SUB3", f'{status_names["sub-name1-3"]} : {status_values["sub-value1-3"]}', f'{status_names["sub-name2-3"]} : {status_values["sub-value2-3"]}', f'{status_names["sub-name3-3"]} : {status_values["sub-value3-3"]}', f'{status_names["sub-name4-3"]} : {status_values["sub-value4-3"]}', f'{status_names["sub-name5-3"]} : {status_values["sub-value5-3"]}'],
-        ["SUB4", f'{status_names["sub-name1-4"]} : {status_values["sub-value1-4"]}', f'{status_names["sub-name2-4"]} : {status_values["sub-value2-4"]}', f'{status_names["sub-name3-4"]} : {status_values["sub-value3-4"]}', f'{status_names["sub-name4-4"]} : {status_values["sub-value4-4"]}', f'{status_names["sub-name5-4"]} : {status_values["sub-value5-4"]}'],
-        ["SUB5", f'{status_names["sub-name1-5"]} : {status_values["sub-value1-5"]}', f'{status_names["sub-name2-5"]} : {status_values["sub-value2-5"]}', f'{status_names["sub-name3-5"]} : {status_values["sub-value3-5"]}', f'{status_names["sub-name4-5"]} : {status_values["sub-value4-5"]}', f'{status_names["sub-name5-5"]} : {status_values["sub-value5-5"]}'],
+        ["COST"] + [costs[f"cost{i}"] for i in range(1, 6)],
+        ["MAIN"] + [f'{status_names[f"main-name{i}"]} : {status_values[f"main-value{i}"]}' for i in range(1, 6)],
     ]
-            
-    
+
+    for sub in range(1, 6):
+        data.append(
+            [f"SUB{sub}"] + [f'{status_names[f"sub-name{i}-{sub}"]} : {status_values[f"sub-value{i}-{sub}"]}' for i in range(1, 6)]
+        )     
+    print(f"キャラクター名 : {name}")
     print(tabulate(data, headers=headers, tablefmt="grid", stralign="center", maxcolwidths=40))
+    # print(generate_json(sys.argv[1]))

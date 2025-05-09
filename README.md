@@ -12,8 +12,8 @@ sudo apt install tesseract-ocr tesseract-ocr-jpn python3 python-is-python3
 
 
 # 開発・テスト環境
-python 3.12.3 + tesseract 5.3.4  / Ubuntu 24.04
-Python 3.12.3 + tesseract 5.3.4 / Ubuntu 24.04 on WSL2
+- python 3.12.3 + tesseract 5.3.4  / Ubuntu 24.04
+- Python 3.12.3 + tesseract 5.3.4 / Ubuntu 24.04 on WSL2
 
 # 準備
 https://discord.com/channels/1035380212927574068/1323191401378222122

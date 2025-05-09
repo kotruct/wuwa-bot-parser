@@ -206,7 +206,8 @@ def extract_name(img):
     # candidates = ["カルロッタ", "ツバキ", "ザンニー", "カカロ"]
     with open("data/charactor_names.txt", "r", encoding="utf-8") as file:
             candidates = [line.strip() for line in file if line.strip()]
-    custom_config = f'-c tessedit_char_whitelist={''.join(candidates)} --oem 1 --psm 7'
+    whitelist = ''.join(candidates)
+    custom_config = f'-c tessedit_char_whitelist={whitelist} --oem 1 --psm 7'
     pil_img = Image.fromarray(numpy_img)
     tesseract_text = ocr_pytesseract(pil_img, custom_config, lang='jpn')
     # print(f"{field}.tesseract_text : {tesseract_text}")

@@ -52,7 +52,7 @@ if __name__ == "__main__":
             "value": slot["MAIN"]["value"]
         })
         # SUBステータスを追加
-        for sub in slot["SUB"].values():
+        for sub in slot["SUB"]:
             combined_status.append({
                 "name": sub["name"],
                 "value": sub["value"]

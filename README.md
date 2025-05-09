@@ -6,7 +6,7 @@ tesseractがインストール済み
 Ubuntu
 ```
 sudo apt update
-sudo apt tesseract-ocr tesseract-ocr-jpn python3 python-is-python3
+sudo apt install tesseract-ocr tesseract-ocr-jpn python3 python-is-python3
 ```
 
 
@@ -36,7 +36,42 @@ pip install -r requirements.txt
 python parser.py https://wutheringwaves-discord.kurogames-global.com/back/cd/{ID}.jpeg
 # ダウンロード済みの場合は: python parser.py {ID}.jpeg
 ```
+![実行結果例](./example_result.png)
 
+
+以下でJSON形式でも取得できる
+```
+import parser
+json_data = parser.generate_json(path)
+```
+
+```
+{
+  "name": "カルロッタ",
+  "slots": [
+    {
+      "COST": "4",
+      "MAIN": {
+        "name": "クリティカル",
+        "value": "22%"
+      },
+      "SUB": [
+        {
+          "name": "通常攻撃ダメージアップ",
+          "value": "8.6%"
+        },
+        
+        ...
+
+      ]
+    },
+
+    ...
+
+  ]
+}
+
+```
 
 ### 総合スコア
 ```

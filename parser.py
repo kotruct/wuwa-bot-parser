@@ -238,13 +238,13 @@ def generate_json(path):
                         "name": status_names[f"main-name{i}"],
                         "value": status_values[f"main-value{i}"]
                     },
-                    "SUB": {
-                        f"sub{sub}": {
+                    "SUB": [
+                        {
                             "name": status_names[f"sub-name{i}-{sub}"],
                             "value": status_values[f"sub-value{i}-{sub}"]
                         } for sub in range(1, 6)
-                    }
-                } for i in range(1, 6)
+                    ]
+                }  for i in range(1, 6)
             ]
     }
     # return json.dumps(result, ensure_ascii=False, indent=4)

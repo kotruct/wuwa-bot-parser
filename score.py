@@ -35,14 +35,16 @@ if __name__ == "__main__":
     with open(f"data/{name}.txt", "r", encoding="utf-8") as file:
             damage_type_list = [line.strip() for line in file if line.strip()]
 
-    attack = 1.0
-    base_attack = data["攻撃力"]
+    
+    base_attack = data["基礎攻撃力"]
+    initial_attack = data["攻撃力"] / base_attack
+    attack = initial_attack
     critical = data["クリティカル"]
-    base_critical = critical
+    initial_critical = critical
     damage = data["クリティカルダメージ"]
-    base_damage = damage
+    initial_damage = damage
     damage_up = data["ダメージアップ"]
-    base_damage_up = damage_up
+    initial_damage_up = damage_up
 
     combined_status = []
 
@@ -58,6 +60,12 @@ if __name__ == "__main__":
                 "name": sub["name"],
                 "value": sub["value"]
             })
+        # 固定ステータスを追加
+        if slot["COST"] == 3:
+            attack += 100.0 / base_attack
+        elif slot["COST"] == 4:
+            attack += 150.0 / base_attack
+    
 
     # print(combined_status)
 
@@ -66,7 +74,8 @@ if __name__ == "__main__":
             status["value"] = status["value"].replace("%", "")
             status["value"] = float(status["value"]) / 100
         else:
-            status["value"] = float(status["value"]) / base_attack
+            if "攻撃力" in status["name"]:
+                status["value"] = float(status["value"]) / base_attack
 
         if "攻撃力" in status["name"]:
             attack += status["value"]
@@ -79,17 +88,17 @@ if __name__ == "__main__":
             damage_up += status["value"]
 
 
-    headers = ["ステータス", "基準値", "最終値", "倍率"]
+    headers = ["ステータス", "初期値", "最終値", "倍率"]
     table = []
-    table.append([f'攻撃力', f"{base_attack:.1f}", f"{base_attack * attack:.1f}", f"{attack:.2f}倍"])
-    table.append([f'クリティカル', f"{base_critical:.3f}", f"{critical:.3f}", f""])
-    table.append([f'クリティカルダメージ', f"{base_damage:.3f}", f"{damage:.3f}", f""])
-    table.append([f'クリティカル効果', f"{1 - base_critical + base_critical * base_damage:.3f}", f"{1 - critical + critical * damage:.3f}", f"{(1 - critical + critical * damage) / (1 - base_critical + base_critical * base_damage):.2f}倍"])
-    table.append([f'ダメージアップ', f"{base_damage_up:.3f}", f"{damage_up:.3f}", f"{(1+damage_up) / (1+base_damage_up):.2f}倍"])
+    table.append([f'攻撃力', f"{initial_attack:.3f}", f"{attack:.3f}", f"{attack / initial_attack:.2f}倍"])
+    table.append([f'クリティカル', f"{initial_critical:.3f}", f"{critical:.3f}", f""])
+    table.append([f'クリティカルダメージ', f"{initial_damage:.3f}", f"{damage:.3f}", f""])
+    table.append([f'クリティカル効果', f"{1 - initial_critical + initial_critical * initial_damage:.3f}", f"{1 - critical + critical * damage:.3f}", f"{(1 - critical + critical * damage) / (1 - initial_critical + initial_critical * initial_damage):.2f}倍"])
+    table.append([f'ダメージアップ', f"{initial_damage_up:.3f}", f"{damage_up:.3f}", f"{(1+damage_up) / (1+initial_damage_up):.2f}倍"])
     table.append([f'期待値', 
-                  f"{1.0 * (1 - base_critical + base_critical * base_damage) * (1 + base_damage_up):.3f}", 
+                  f"{1.0 * (1 - initial_critical + initial_critical * initial_damage) * (1 + initial_damage_up):.3f}", 
                   f"{attack * (1 - critical + critical * damage) * (1 + damage_up):.3f}", 
-                  f"{(attack * (1 - critical + critical * damage) * (1 + damage_up)) / (1.0 * (1 - base_critical + base_critical * base_damage) * (1 + base_damage_up)):.2f}倍"
+                  f"{(attack * (1 - critical + critical * damage) * (1 + damage_up)) / (1.0 * (1 - initial_critical + initial_critical * initial_damage) * (1 + initial_damage_up)):.2f}倍"
                   ])
 
     print(tabulate(table, headers=headers, tablefmt="grid", stralign="center", maxcolwidths=[20, 10, 10, 10]))

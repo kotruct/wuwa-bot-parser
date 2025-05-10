@@ -2,5 +2,6 @@ data/*.jpeg
 debug/*.jpeg
 .venv
 *.jpeg
+*.png
 __pycache__
 *.pyc
